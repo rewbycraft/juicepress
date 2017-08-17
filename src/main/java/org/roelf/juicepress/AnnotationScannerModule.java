@@ -3,8 +3,10 @@ package org.roelf.juicepress;
 import com.google.inject.AbstractModule;
 import com.google.inject.Provider;
 import com.google.inject.assistedinject.FactoryModuleBuilder;
+import com.google.inject.multibindings.Multibinder;
 import org.roelf.juicepress.annotations.BindsTo;
 import org.roelf.juicepress.annotations.InjectAssists;
+import org.roelf.juicepress.annotations.MultiBindsTo;
 import org.roelf.juicepress.annotations.ProvidesType;
 
 import java.lang.annotation.Annotation;
@@ -16,6 +18,7 @@ public abstract class AnnotationScannerModule extends AbstractModule {
     @Override
     protected void configure() {
         configureBindsTo();
+        configureMultiBindsTo();
         configureInjectAssists();
         configureProviders();
     }
@@ -30,6 +33,20 @@ public abstract class AnnotationScannerModule extends AbstractModule {
             if (implementedClass.isAssignableFrom(clazz))
                 bind((Class) implementedClass).to(clazz);
             else
+                throw new RuntimeException("Class " + clazz.getName() + " claims to implement " + implementedClass.getName() + ", which it doesn't.");
+        });
+    }
+
+    @SuppressWarnings("unchecked")
+    private void configureMultiBindsTo() {
+        Set<Class<?>> annotatedClasses = getTypesAnnotatedWith(MultiBindsTo.class);
+
+        annotatedClasses.forEach((Class<?> clazz) -> {
+            Class<?> implementedClass = clazz.getAnnotation(MultiBindsTo.class).value();
+
+            if (implementedClass.isAssignableFrom(clazz)) {
+                Multibinder.newSetBinder(binder(), (Class)implementedClass).addBinding().to(clazz);
+            }else
                 throw new RuntimeException("Class " + clazz.getName() + " claims to implement " + implementedClass.getName() + ", which it doesn't.");
         });
     }
