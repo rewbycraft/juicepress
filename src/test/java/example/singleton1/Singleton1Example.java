@@ -4,7 +4,8 @@ import org.roelf.juicepress.InstanceManager;
 
 public class Singleton1Example {
     public static void main(String[] args) {
-        InstanceManager.init("example.singleton1");
+        InstanceManager.addDefaultReflectionModule("example.singleton1");
+        InstanceManager.init();
 
         example();
         example();
